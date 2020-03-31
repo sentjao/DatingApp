@@ -10,6 +10,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
+using DatingApi.NET.Services;
+using DatingApi.NET.Repositories;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace DatingApi.NET
 {
@@ -30,6 +35,20 @@ namespace DatingApi.NET
             services.AddDbContext<DataContext>(x=>x.UseSqlite(connStr));
             services.AddControllers();
             services.AddCors();
+            services.AddScoped<IAuthRepository, AuthRepository>();
+            services.AddSingleton<ISHA512, SHA512>();
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(
+                x=> {
+                    x.TokenValidationParameters = new TokenValidationParameters{
+                        ValidateIssuerSigningKey=true,
+                        IssuerSigningKey = new SymmetricSecurityKey(
+                            Encoding.UTF8.GetBytes(Configuration.GetSection("AppSettings:Token").Value)),
+                        ValidateAudience=false,
+                        ValidateIssuer = false
+                    };
+                }
+            );
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -43,15 +62,15 @@ namespace DatingApi.NET
             //app.UseHttpsRedirection();
 
             app.UseCors(x=>x.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+            
+            
             app.UseRouting();
-
-            //app.UseAuthorization();
-
+            app.UseAuthentication();
+            app.UseAuthorization();
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
             });
-           
         }
     }
 }
