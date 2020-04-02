@@ -41,6 +41,8 @@ namespace DatingApi.NET
             services.AddCors();
             services.AddScoped<IAuthRepository, AuthRepository>();
             services.AddSingleton<ISHA512, SHA512>();
+            services.AddScoped<ISeedData, SeedData>();
+            services.AddScoped<IDatingRepository, DatingRepository>();
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(
                 x=> {
@@ -77,7 +79,7 @@ namespace DatingApi.NET
                 ));
             }
             //app.UseHttpsRedirection();
-
+            //app.UseMiddleware<ISeedData>();
             app.UseCors(x=>x.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
             
             
